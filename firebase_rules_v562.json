@@ -1,0 +1,31 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "menu": {
+      ".read": "auth != null",
+      ".write": "auth != null && (auth.uid == 'kFSCzY1oNPaSJRuI1N8DSDQOpdq1' || auth.uid == 'J4e4YIrpG4PZYh0Jxw3VPSihyoj2')"
+    },
+    "orders": {
+      ".read": "auth != null && (auth.uid == 'kFSCzY1oNPaSJRuI1N8DSDQOpdq1' || auth.uid == 'J4e4YIrpG4PZYh0Jxw3VPSihyoj2')",
+      "$orderId": {
+        ".write": "auth != null && ((auth.uid == 'kFSCzY1oNPaSJRuI1N8DSDQOpdq1' || auth.uid == 'J4e4YIrpG4PZYh0Jxw3VPSihyoj2') || (auth.token.firebase.sign_in_provider == 'anonymous' && !data.exists() && newData.exists() && newData.child('id').val() == $orderId && newData.child('status').val() == 'new' && newData.child('paid').val() == false && newData.child('createdAt').isNumber() && newData.child('createdAt').val() <= now + 60000 && newData.child('createdAt').val() >= now - 300000 && newData.child('total').isNumber() && newData.child('items').exists() && (newData.child('table').val() == 'T1' || newData.child('table').val() == 'T2' || newData.child('table').val() == 'T3') && root.child('tableSessions').child(newData.child('table').val()).child('public').child('active').val() == true && root.child('tableSessions').child(newData.child('table').val()).child('public').child('expiresAt').isNumber() && root.child('tableSessions').child(newData.child('table').val()).child('public').child('expiresAt').val() > now && newData.child('sessionId').val() == root.child('tableSessions').child(newData.child('table').val()).child('public').child('sessionId').val() && newData.child('accessCode').val() == root.child('tableSessions').child(newData.child('table').val()).child('secretCode').val()))"
+      }
+    },
+    "tableSessions": {
+      ".read": "auth != null && (auth.uid == 'kFSCzY1oNPaSJRuI1N8DSDQOpdq1' || auth.uid == 'J4e4YIrpG4PZYh0Jxw3VPSihyoj2')",
+      "$table": {
+        ".write": "auth != null && (auth.uid == 'kFSCzY1oNPaSJRuI1N8DSDQOpdq1' || auth.uid == 'J4e4YIrpG4PZYh0Jxw3VPSihyoj2')",
+        "public": {
+          ".read": "auth != null"
+        }
+      }
+    },
+    "tableAccessChecks": {
+      "$uid": {
+        ".read": "auth != null && ((auth.uid == 'kFSCzY1oNPaSJRuI1N8DSDQOpdq1' || auth.uid == 'J4e4YIrpG4PZYh0Jxw3VPSihyoj2') || auth.uid == $uid)",
+        ".write": "auth != null && ((auth.uid == 'kFSCzY1oNPaSJRuI1N8DSDQOpdq1' || auth.uid == 'J4e4YIrpG4PZYh0Jxw3VPSihyoj2') || (auth.uid == $uid && auth.token.firebase.sign_in_provider == 'anonymous' && (!newData.exists() || (newData.child('checkedAt').isNumber() && newData.child('checkedAt').val() <= now + 60000 && newData.child('checkedAt').val() >= now - 300000 && (newData.child('table').val() == 'T1' || newData.child('table').val() == 'T2' || newData.child('table').val() == 'T3') && root.child('tableSessions').child(newData.child('table').val()).child('public').child('active').val() == true && root.child('tableSessions').child(newData.child('table').val()).child('public').child('expiresAt').val() > now && newData.child('sessionId').val() == root.child('tableSessions').child(newData.child('table').val()).child('public').child('sessionId').val() && newData.child('accessCode').val() == root.child('tableSessions').child(newData.child('table').val()).child('secretCode').val()))))"
+      }
+    }
+  }
+}

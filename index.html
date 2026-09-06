@@ -1,4 +1,4 @@
-<!-- 2026-09-06 14:46 変更済み -->
+<!-- 2026-09-06 15:49 変更済み -->
 <!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"><title>福林楼 モバイルオーダー</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"><style>
 :root{--paper:#FAF3E7;--paper-deep:#F1E7D3;--ink:#2B241D;--ink-soft:#6B6053;--lacquer:#A8362B;--lacquer-deep:#7C271F;--gold:#C9972B;--bamboo:#4B6350;--line:#DCD0B6;--white:#FFFDF8;--font-display:'Noto Serif JP',serif;--font-body:'Noto Sans JP',sans-serif;--font-ticket:'DM Mono',monospace}
 *{box-sizing:border-box}html,body{margin:0;padding:0}body{background:var(--paper);color:var(--ink);font-family:var(--font-body);-webkit-font-smoothing:antialiased}#app{min-height:100vh}button,input,textarea{font-family:var(--font-body)}button{cursor:pointer;border:none;background:none}.btn-primary{background:var(--lacquer);color:var(--white);font-weight:700;font-size:15px;padding:14px 20px;border-radius:5px}.btn-primary:disabled{background:#C9BBA3}.btn-ghost{color:var(--ink-soft);font-size:13px;padding:8px 10px;text-decoration:underline;text-underline-offset:3px}.loading{padding:60px 20px;text-align:center;color:var(--ink-soft);font-size:13.5px}.perforation{height:1px;background-image:repeating-linear-gradient(to right,var(--line) 0 6px,transparent 6px 12px)}::-webkit-scrollbar{height:0;width:0}
@@ -361,8 +361,8 @@ body{background:radial-gradient(circle at 20% 0%,rgba(201,151,43,.10),transparen
   async function validateTableAccess(code){
     if(!TABLE_VALID || !sessionIsActive())return false;
     if(!(await ensureCustomerAuth()))return false;
-    const cleaned=String(code||"").replace(/\D/g,"").slice(0,6);
-    if(cleaned.length!==6)return false;
+    const cleaned=String(code||"").replace(/\D/g,"").slice(0,4);
+    if(cleaned.length!==4)return false;
     const uid=auth.currentUser?.uid;
     if(!uid)return false;
     const ref=db.ref(`tableAccessChecks/${uid}`);
@@ -426,10 +426,10 @@ body{background:radial-gradient(circle at 20% 0%,rgba(201,151,43,.10),transparen
       <div class="start-table">${TABLE}</div>
       ${loading?`<div class="table-closed-note" style="color:var(--ink-soft);border-color:var(--line);background:var(--paper)">注文受付状態を確認しています…</div>`:
         !active?`<div class="table-closed-note">このテーブルは現在、注文受付前または受付終了です。スタッフにお声がけください。</div>`:
-        `<div class="start-copy">店内でスタッフから案内された6桁の確認コードを入力してください。</div>
+        `<div class="start-copy">店内でスタッフから案内された4桁の確認コードを入力してください。</div>
          <div class="table-access-box">
            <div class="table-access-title">店内確認コード</div>
-           <input id="tableAccessCode" class="table-access-input" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="one-time-code" value="${escapeHtml(accessCode)}" placeholder="000000">
+           <input id="tableAccessCode" class="table-access-input" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="one-time-code" value="${escapeHtml(accessCode)}" placeholder="0000">
            <div class="table-access-note">このコードは着席中だけ有効です。会計後や受付終了後は、以前の履歴・ブックマークから注文できません。</div>
            <div class="table-access-error" id="tableAccessError">コードが違うか、注文受付が終了しています。スタッフにご確認ください。</div>
          </div>
@@ -439,7 +439,7 @@ body{background:radial-gradient(circle at 20% 0%,rgba(201,151,43,.10),transparen
     if(btn)btn.onclick=async()=>{
       const inp=d.querySelector("#tableAccessCode");
       const er=d.querySelector("#tableAccessError");
-      const code=String(inp?.value||"").replace(/\D/g,"").slice(0,6);
+      const code=String(inp?.value||"").replace(/\D/g,"").slice(0,4);
       if(inp)inp.value=code;
       btn.disabled=true;btn.textContent="確認中…";
       const ok=await validateTableAccess(code);
@@ -544,4 +544,4 @@ body{background:radial-gradient(circle at 20% 0%,rgba(201,151,43,.10),transparen
   window.addEventListener('fuku-lang-change',()=>renderCustomer());
   init();
 })();
-</script><script src="v4-enhance.js?v=56"></script></body></html>
+</script><script src="v4-enhance.js?v=562"></script></body></html>
