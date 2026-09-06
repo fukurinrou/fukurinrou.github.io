@@ -328,7 +328,7 @@ window.FUKURIN_V54_STAFF_DRIVES_VOICE=true;
   function renderTableSessionPanel(){
     const wrap=document.createElement("div");
     wrap.className="table-session-panel";
-    wrap.innerHTML=`<h2>テーブル注文受付</h2><div class="table-session-help">お客様が着席したら「受付開始」を押し、表示された6桁コードをお客様に伝えてください。会計完了で自動的に受付終了します。古い履歴・ブックマークからは注文できなくなります。</div><div class="table-session-grid"></div>`;
+    wrap.innerHTML=`<h2>テーブル注文受付</h2><div class="table-session-help">お客様が着席したら「受付開始」を押し、表示された4桁コードをお客様に伝えてください。会計完了で自動的に受付終了します。古い履歴・ブックマークからは注文できなくなります。</div><div class="table-session-grid"></div>`;
     const grid=wrap.querySelector(".table-session-grid");
     TABLES.forEach(table=>{
       const s=tableSessionOf(table),p=s.public||{},active=tableSessionActive(table),code=active?String(s.secretCode||"------"):"------";
