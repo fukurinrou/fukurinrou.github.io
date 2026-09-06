@@ -429,7 +429,7 @@ body{background:radial-gradient(circle at 20% 0%,rgba(201,151,43,.10),transparen
         `<div class="start-copy">店内でスタッフから案内された6桁の確認コードを入力してください。</div>
          <div class="table-access-box">
            <div class="table-access-title">店内確認コード</div>
-           <input id="tableAccessCode" class="table-access-input" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code" value="${escapeHtml(accessCode)}" placeholder="000000">
+           <input id="tableAccessCode" class="table-access-input" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="one-time-code" value="${escapeHtml(accessCode)}" placeholder="000000">
            <div class="table-access-note">このコードは着席中だけ有効です。会計後や受付終了後は、以前の履歴・ブックマークから注文できません。</div>
            <div class="table-access-error" id="tableAccessError">コードが違うか、注文受付が終了しています。スタッフにご確認ください。</div>
          </div>
