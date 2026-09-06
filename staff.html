@@ -285,7 +285,7 @@ window.FUKURIN_V54_STAFF_DRIVES_VOICE=true;
       if(!confirm(`${table} はすでに受付中です。コードを更新すると、現在のお客様の注文画面は無効になります。更新しますか？`))return false;
     }
     const now=Date.now();
-    const code=randomDigits6();
+    const code=randomDigits4();
     const sessionId=randomSessionId();
     const value={
       public:{
