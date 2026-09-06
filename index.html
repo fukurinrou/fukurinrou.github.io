@@ -1,4 +1,4 @@
-<!-- 2026-09-06 00:32 変更済み -->
+<!-- 2026-09-06 14:46 変更済み -->
 <!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"><title>福林楼 モバイルオーダー</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"><style>
 :root{--paper:#FAF3E7;--paper-deep:#F1E7D3;--ink:#2B241D;--ink-soft:#6B6053;--lacquer:#A8362B;--lacquer-deep:#7C271F;--gold:#C9972B;--bamboo:#4B6350;--line:#DCD0B6;--white:#FFFDF8;--font-display:'Noto Serif JP',serif;--font-body:'Noto Sans JP',sans-serif;--font-ticket:'DM Mono',monospace}
 *{box-sizing:border-box}html,body{margin:0;padding:0}body{background:var(--paper);color:var(--ink);font-family:var(--font-body);-webkit-font-smoothing:antialiased}#app{min-height:100vh}button,input,textarea{font-family:var(--font-body)}button{cursor:pointer;border:none;background:none}.btn-primary{background:var(--lacquer);color:var(--white);font-weight:700;font-size:15px;padding:14px 20px;border-radius:5px}.btn-primary:disabled{background:#C9BBA3}.btn-ghost{color:var(--ink-soft);font-size:13px;padding:8px 10px;text-decoration:underline;text-underline-offset:3px}.loading{padding:60px 20px;text-align:center;color:var(--ink-soft);font-size:13.5px}.perforation{height:1px;background-image:repeating-linear-gradient(to right,var(--line) 0 6px,transparent 6px 12px)}::-webkit-scrollbar{height:0;width:0}
@@ -63,6 +63,15 @@ body{background:radial-gradient(circle at 20% 0%,rgba(201,151,43,.10),transparen
 .recommend-tab::before,.recommend-tab::after,.recommend-title::before,.recommend-title::after{content:"★";color:#f4c400;font-weight:900;text-shadow:0 1px 1px rgba(120,80,0,.18)}
 .recommend-tab::before,.recommend-title::before{margin-right:3px}.recommend-tab::after,.recommend-title::after{margin-left:3px}
 .recommend-title{color:var(--lacquer-deep)!important}
+
+/* ===== v5.6 店内セッション認証 ===== */
+.table-access-box{margin:16px 0 4px;padding:14px;border:1px solid var(--line);border-radius:10px;background:#fffdf8}
+.table-access-title{font-size:13px;font-weight:800;margin-bottom:7px}
+.table-access-input{width:100%;font-size:22px;letter-spacing:.22em;text-align:center;padding:12px;border:1px solid var(--line);border-radius:8px;background:white;font-family:var(--font-ticket)}
+.table-access-note{font-size:11px;line-height:1.6;color:var(--ink-soft);margin-top:7px}
+.table-access-error{display:none;font-size:12px;line-height:1.6;color:var(--lacquer);margin-top:8px;font-weight:700}
+.table-closed-note{margin:14px 0;padding:13px;border:1px solid #e2b7b1;border-radius:8px;background:#fff4f1;color:var(--lacquer-deep);font-size:13px;line-height:1.7;font-weight:700}
+
 </style></head><body><div id="app"></div><script src="menu-data.js"></script><script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-database-compat.js"></script><script src="https://www.gstatic.com/firebasejs/12.18.0/firebase-auth-compat.js"></script><script src="i18n-v43.js?v=45"></script><script>
 (function(){
   "use strict";
@@ -302,9 +311,13 @@ body{background:radial-gradient(circle at 20% 0%,rgba(201,151,43,.10),transparen
   const I18N=window.FUKU_I18N||{t:s=>s,setLang:()=>{},getLang:()=>"ja"};
   const T=s=>I18N.t(s);
   const TABLES=["T1","T2","T3"];
-  const rawTable=(new URLSearchParams(location.search).get("table")||"T1").toUpperCase();
-  const TABLE=TABLES.includes(rawTable)?rawTable:"T1";
-  let resetWatchReady=false,lastResetAt=0;
+  const rawTable=(new URLSearchParams(location.search).get("table")||"").toUpperCase();
+  const TABLE_VALID=TABLES.includes(rawTable);
+  const TABLE=TABLE_VALID?rawTable:"";
+  let tableSessionPublic={active:false,sessionId:"",openedAt:0,expiresAt:0,resetAt:0};
+  let tableSessionReady=false;
+  let accessValidated=false;
+  let accessCode=TABLE_VALID?(sessionStorage.getItem(`fukurinrou_access_${TABLE}`)||""):"";
 
   let MENU_INDEX={}; function rebuildIndex(menu){ MENU_INDEX={}; menu.forEach(sec=>sec.items.forEach(it=>MENU_INDEX[it.id]=it)); }
   const state={menu:[],activeCat:"",menuGroup:"food",cart:{},screen:"start",started:false,lastOrderId:null,serviceMode:""}; const app=document.getElementById("app");
@@ -327,13 +340,118 @@ body{background:radial-gradient(circle at 20% 0%,rgba(201,151,43,.10),transparen
   async function createOrder(order){
     try{
       if(!(await ensureCustomerAuth())) return false;
+      if(!TABLE_VALID || !sessionIsActive() || !accessValidated || !accessCode)return false;
+      order.sessionId=String(tableSessionPublic.sessionId||"");
+      order.accessCode=String(accessCode||"");
       await withTimeout(db.ref(`orders/${order.id}`).set(order),8000,"order write timeout");
       return true;
     }catch(e){console.error(e);return false}
   }
   function renderLanguageBar(){const d=document.createElement("div");d.className="top-lang-bar";const lang=I18N.getLang();d.innerHTML=`<div class="top-lang-title">${escapeHtml(T("言語"))}</div><div class="lang-buttons"><button class="lang-btn ${lang==='ja'?'active':''}" data-lang="ja">日本語</button><button class="lang-btn ${lang==='en'?'active':''}" data-lang="en">English</button><button class="lang-btn ${lang==='ko'?'active':''}" data-lang="ko">한국어</button></div>`;d.querySelectorAll('[data-lang]').forEach(b=>b.onclick=()=>{I18N.setLang(b.dataset.lang);renderCustomer()});return d}
-  function renderHero(){const d=document.createElement("div");d.className="hero-photo";d.innerHTML=`<img src="assets/top_fukurinrou.webp" alt="福林楼"><div class="hero-shade"></div><div class="hero-table">${TABLE}</div><div class="hero-brand"><div class="brand-kicker">${escapeHtml(T("中国料理"))}</div><h1>${escapeHtml(T("福林楼"))}</h1></div>`;return d}
-  function renderStart(){const d=document.createElement("div");d.className="start-panel";d.innerHTML=`<div style="font-family:var(--font-display);font-size:17px;font-weight:700">${escapeHtml(T("ご注文テーブル"))}</div><div class="start-table">${TABLE}</div><div class="start-copy">${escapeHtml(T("このテーブルで注文を開始します"))}</div><button class="btn-primary start-btn" id="startOrder">${escapeHtml(T("注文を開始する"))}</button><div class="reset-note">${escapeHtml(T("会計後はこの画面が自動でリセットされます"))}</div>`;d.querySelector('#startOrder').onclick=()=>{state.started=true;state.screen='menu';state.cart={};renderCustomer()};return d}
+  function renderHero(){const d=document.createElement("div");d.className="hero-photo";d.innerHTML=`<img src="assets/top_fukurinrou.webp" alt="福林楼"><div class="hero-shade"></div>${TABLE_VALID?`<div class="hero-table">${TABLE}</div>`:""}<div class="hero-brand"><div class="brand-kicker">${escapeHtml(T("中国料理"))}</div><h1>${escapeHtml(T("福林楼"))}</h1></div>`;return d}
+  function sessionIsActive(){
+    return !!(TABLE_VALID && tableSessionPublic && tableSessionPublic.active===true &&
+      Number(tableSessionPublic.expiresAt||0)>Date.now() && String(tableSessionPublic.sessionId||""));
+  }
+  function clearTableAccess(){
+    accessValidated=false;
+    accessCode="";
+    if(TABLE_VALID)sessionStorage.removeItem(`fukurinrou_access_${TABLE}`);
+  }
+  async function validateTableAccess(code){
+    if(!TABLE_VALID || !sessionIsActive())return false;
+    if(!(await ensureCustomerAuth()))return false;
+    const cleaned=String(code||"").replace(/\D/g,"").slice(0,6);
+    if(cleaned.length!==6)return false;
+    const uid=auth.currentUser?.uid;
+    if(!uid)return false;
+    const ref=db.ref(`tableAccessChecks/${uid}`);
+    const probe={
+      table:TABLE,
+      sessionId:String(tableSessionPublic.sessionId||""),
+      accessCode:cleaned,
+      checkedAt:Date.now()
+    };
+    try{
+      await withTimeout(ref.set(probe),6000,"access check timeout");
+      try{await ref.remove()}catch(_){}
+      accessCode=cleaned;
+      accessValidated=true;
+      sessionStorage.setItem(`fukurinrou_access_${TABLE}`,cleaned);
+      return true;
+    }catch(e){
+      console.warn("table access denied",e?.message||e);
+      try{await ref.remove()}catch(_){}
+      return false;
+    }
+  }
+  function watchTableSession(){
+    if(!TABLE_VALID||!db||!auth?.currentUser)return;
+    try{
+      db.ref(`tableSessions/${TABLE}/public`).on("value",snap=>{
+        const prevSession=String(tableSessionPublic?.sessionId||"");
+        const next=snap.val()||{active:false,sessionId:"",openedAt:0,expiresAt:0,resetAt:0};
+        tableSessionPublic=next;
+        tableSessionReady=true;
+        const nextSession=String(next?.sessionId||"");
+        if(prevSession && nextSession!==prevSession){
+          clearTableAccess();
+          resetToStart();
+          return;
+        }
+        if(!sessionIsActive() && state.started){
+          clearTableAccess();
+          resetToStart();
+          return;
+        }
+        if(!state.started && state.screen==="start")renderCustomer();
+      },err=>{
+        console.warn("table session listener unavailable",err?.message||err);
+        tableSessionReady=true;
+        tableSessionPublic={active:false,sessionId:"",openedAt:0,expiresAt:0,resetAt:0};
+        renderCustomer();
+      });
+    }catch(e){console.warn(e)}
+  }
+  function renderStart(){
+    const d=document.createElement("div");
+    d.className="start-panel";
+    if(!TABLE_VALID){
+      d.innerHTML=`<div style="font-family:var(--font-display);font-size:18px;font-weight:800">${escapeHtml(T("注文用QRコードを読み取ってください"))}</div><div class="table-closed-note">テーブル情報がありません。店内のT1・T2・T3専用QRコードからアクセスしてください。</div>`;
+      return d;
+    }
+    const active=sessionIsActive();
+    const loading=!tableSessionReady;
+    d.innerHTML=`<div style="font-family:var(--font-display);font-size:17px;font-weight:700">${escapeHtml(T("ご注文テーブル"))}</div>
+      <div class="start-table">${TABLE}</div>
+      ${loading?`<div class="table-closed-note" style="color:var(--ink-soft);border-color:var(--line);background:var(--paper)">注文受付状態を確認しています…</div>`:
+        !active?`<div class="table-closed-note">このテーブルは現在、注文受付前または受付終了です。スタッフにお声がけください。</div>`:
+        `<div class="start-copy">店内でスタッフから案内された6桁の確認コードを入力してください。</div>
+         <div class="table-access-box">
+           <div class="table-access-title">店内確認コード</div>
+           <input id="tableAccessCode" class="table-access-input" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code" value="${escapeHtml(accessCode)}" placeholder="000000">
+           <div class="table-access-note">このコードは着席中だけ有効です。会計後や受付終了後は、以前の履歴・ブックマークから注文できません。</div>
+           <div class="table-access-error" id="tableAccessError">コードが違うか、注文受付が終了しています。スタッフにご確認ください。</div>
+         </div>
+         <button class="btn-primary start-btn" id="startOrder">${escapeHtml(T("注文を開始する"))}</button>`}
+      <div class="reset-note">${escapeHtml(T("会計後はこの画面が自動でリセットされます"))}</div>`;
+    const btn=d.querySelector("#startOrder");
+    if(btn)btn.onclick=async()=>{
+      const inp=d.querySelector("#tableAccessCode");
+      const er=d.querySelector("#tableAccessError");
+      const code=String(inp?.value||"").replace(/\D/g,"").slice(0,6);
+      if(inp)inp.value=code;
+      btn.disabled=true;btn.textContent="確認中…";
+      const ok=await validateTableAccess(code);
+      if(ok){
+        state.started=true;state.screen="menu";state.cart={};renderCustomer();
+      }else{
+        if(er)er.style.display="block";
+        btn.disabled=false;btn.textContent=T("注文を開始する");
+      }
+    };
+    return d;
+  }
   function renderCustomer(){const w=document.createElement("div");w.className="cust-wrap";w.appendChild(renderLanguageBar());w.appendChild(renderHero());if(!state.started||state.screen==="start"){w.appendChild(renderStart());app.replaceChildren(w);return}if(state.screen==="confirmed"){w.appendChild(renderConfirm());app.replaceChildren(w);return}if(state.screen==="review"){w.appendChild(renderHeader());w.appendChild(renderReview());app.replaceChildren(w);return}w.appendChild(renderHeader());w.appendChild(renderTabs());w.appendChild(renderMenu());app.replaceChildren(w);if(cartCount()>0)app.appendChild(renderCartBar());requestAnimationFrame(setupSectionObserver)}
   function renderHeader(){const d=document.createElement("div");d.className="cust-header";const st=serviceText();d.innerHTML=`<div class="sub">${escapeHtml(T("お好きな料理を選んでご注文ください"))}</div><div class="table-line"><span>${escapeHtml(T("注文テーブル"))}</span><span class="table-pill">${TABLE}</span></div><div class="service-banner"><span class="service-dot"></span><strong>${escapeHtml(T(st.label))}</strong></div><div class="service-note">${escapeHtml(T(st.note))}</div>`;return d}
   function groupSections(){const target=state.menuGroup==="drink"?"drink":"food";return visibleSections().filter(sec=>(sec.menuGroup==="drink"?"drink":"food")===target)}
@@ -368,7 +486,14 @@ body{background:radial-gradient(circle at 20% 0%,rgba(201,151,43,.10),transparen
     const items=cartLines().filter(l=>Number(l.qty||0)>0).map(l=>({id:l.id,name:l.name,qty:l.qty,price:l.price,options:l.selections||{},note:l.note||"",optionText:l.optionText||""}));
     const order={id,table:TABLE,items,total:cartTotal(),status:"new",paid:false,createdAt:Date.now()};
     if(await createOrder(order)){state.lastOrderId=id;state.cart={};state.screen="confirmed";renderCustomer()}
-    else{d.querySelector("#orderError").style.display="block";btn.disabled=false;btn.textContent=T("この内容で注文する")}
+    else{
+      const er=d.querySelector("#orderError");
+      if(er){
+        er.textContent="注文できませんでした。注文受付が終了したか、店内確認コードが無効です。スタッフにお声がけください。";
+        er.style.display="block";
+      }
+      btn.disabled=false;btn.textContent=T("この内容で注文する");
+    }
   }
   function renderReview(){
     const d=document.createElement("div");
@@ -405,14 +530,13 @@ body{background:radial-gradient(circle at 20% 0%,rgba(201,151,43,.10),transparen
   function activateTab(cat){document.querySelectorAll('.cat-tab').forEach(tab=>tab.classList.toggle('active',tab.dataset.cat===cat))}
   function setupSectionObserver(){if(window.__fukuV43IO){window.__fukuV43IO.disconnect();window.__fukuV43IO=null}const sections=[...document.querySelectorAll('.menu-section > div[id^="sec-"]')];if(!sections.length)return;const io=new IntersectionObserver(entries=>{const hit=entries.filter(e=>e.isIntersecting).sort((a,b)=>b.intersectionRatio-a.intersectionRatio)[0];if(!hit)return;const raw=decodeURIComponent(hit.target.id.replace(/^sec-/,''));state.activeCat=raw;activateTab(raw)},{rootMargin:'-130px 0px -58% 0px',threshold:[.05,.2,.5]});sections.forEach(x=>io.observe(x));window.__fukuV43IO=io}
   function resetToStart(){state.cart={};state.started=false;state.screen='start';state.lastOrderId=null;renderCustomer();window.scrollTo({top:0,behavior:'smooth'})}
-  function watchTableReset(){if(!db||!auth?.currentUser)return;try{db.ref(`tableSessions/${TABLE}/resetAt`).on('value',snap=>{const v=Number(snap.val()||0);if(!resetWatchReady){lastResetAt=v;resetWatchReady=true;return}if(v>lastResetAt){lastResetAt=v;resetToStart()}},err=>console.warn('table reset listener unavailable',err?.message||err))}catch(e){console.warn(e)}}
   function escapeHtml(s){return String(s??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
   async function init(){
     // 安定性優先: Firebaseを待たず、まず画面とメニューを表示。
     state.menu=mergeMenuV3(DEFAULT_MENU);rebuildIndex(state.menu);state.serviceMode=currentServiceMode();state.activeCat=visibleSections()[0]?.cat||"";renderCustomer();
     if(!initFirebaseSafe()) return;
     const authed=await ensureCustomerAuth();if(!authed) return;
-    watchTableReset();
+    watchTableSession();
     const remoteMenu=await loadMenu();if(remoteMenu&&remoteMenu.length){state.menu=remoteMenu;rebuildIndex(state.menu);if(state.screen==="menu")renderCustomer()}
     try{db.ref("menu").on("value",snap=>{if(snap.exists()){state.menu=mergeMenuV3(snap.val());rebuildIndex(state.menu);if(state.screen==="menu")renderCustomer()}},err=>console.error("menu listener error",err))}catch(e){console.error(e)}
     setInterval(()=>{const m=currentServiceMode();if(m!==state.serviceMode){state.serviceMode=m;if(state.screen==="menu")renderCustomer()}},60000);
@@ -420,4 +544,4 @@ body{background:radial-gradient(circle at 20% 0%,rgba(201,151,43,.10),transparen
   window.addEventListener('fuku-lang-change',()=>renderCustomer());
   init();
 })();
-</script><script src="v4-enhance.js?v=55"></script></body></html>
+</script><script src="v4-enhance.js?v=56"></script></body></html>
