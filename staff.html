@@ -263,11 +263,11 @@ window.FUKURIN_V54_STAFF_DRIVES_VOICE=true;
   async function loadMenu(){const s=await db.ref("menu").once("value");return s.exists()?mergeMenuV3(s.val()):mergeMenuV3(DEFAULT_MENU)}
   async function loadOrders(){const s=await db.ref("orders").once("value");return ordersFrom(s.val())}
   async function updateStatus(id,status){try{await db.ref(`orders/${id}/status`).set(status);return true}catch(e){console.error(e);return false}}
-  function randomDigits6(){
+  function randomDigits4(){
     try{
       const a=new Uint32Array(1);crypto.getRandomValues(a);
-      return String(100000+(a[0]%900000));
-    }catch(_){return String(Math.floor(100000+Math.random()*900000))}
+      return String(1000+(a[0]%9000));
+    }catch(_){return String(Math.floor(1000+Math.random()*9000))}
   }
   function randomSessionId(){
     try{
