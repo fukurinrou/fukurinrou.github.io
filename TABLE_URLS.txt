@@ -1,7 +1,22 @@
-福林楼 テーブル固定URL
+福林楼 QR注文 v5.7.1
+2026-10-24 19:30 変更済み
 
-T1: https://fukurinrou-order.netlify.app/?table=T1
-T2: https://fukurinrou-order.netlify.app/?table=T2
-T3: https://fukurinrou-order.netlify.app/?table=T3
+【Netlify 本番URL】
+お客様 T1
+https://fukurinrou-order.netlify.app/?table=T1
 
-各テーブルのQRコードは、それぞれ対応するURLで作成してください。
+お客様 T2
+https://fukurinrou-order.netlify.app/?table=T2
+
+お客様 T3
+https://fukurinrou-order.netlify.app/?table=T3
+
+管理画面
+https://fukurinrou-order.netlify.app/staff.html
+
+【今回の仕様】
+・お客様はT1/T2/T3のQRを開いても、4桁の店内確認コードを入力しないと注文開始できません。
+・会計画面で各テーブルの「受付開始」を押すと4桁コードが発行されます。
+・会計完了するとそのコードは無効になります。
+・iPad 1台でキッチンと会計を同時表示します。
+・注文履歴に「履歴を削除」を追加しています。
