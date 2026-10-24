@@ -134,4 +134,32 @@ Object.assign(KO,{
 Object.assign(EN,{"サイズ":"Size","小":"Small"});
 Object.assign(KO,{"サイズ":"크기","小":"소"});
 
+// 2026-10-24 20:30 変更済み — table security and ordering UI
+Object.assign(EN,{
+  "テーブル情報がありません。店内のT1・T2・T3専用QRコードからアクセスしてください。":"No table selected. Please scan the QR code at your table (T1, T2 or T3).",
+  "注文受付状態を確認しています…":"Checking whether this table is accepting orders…",
+  "このテーブルは現在、注文受付前または受付終了です。スタッフにお声がけください。":"Ordering is not open for this table. Please ask a staff member.",
+  "店内でスタッフから案内された4桁の確認コードを入力してください。":"Enter the 4-digit code provided by our staff.",
+  "店内確認コード":"Table verification code",
+  "このコードは着席中だけ有効です。会計後や受付終了後は、以前の履歴・ブックマークから注文できません。":"This code is valid only during your visit. It expires when you check out or ordering closes.",
+  "コードが違うか、注文受付が終了しています。スタッフにご確認ください。":"Incorrect code or ordering has closed. Please ask our staff.",
+  "確認中…":"Verifying…",
+  "注文できませんでした。注文受付が終了したか、店内確認コードが無効です。スタッフにお声がけください。":"Could not place your order. Ordering may have closed or your code has expired. Please ask our staff.",
+  "注文用QRコードを読み取ってください":"Please scan the table QR code",
+  "会計後はこの画面が自動でリセットされます":"This screen resets automatically after checkout."
+});
+Object.assign(KO,{
+  "テーブル情報がありません。店内のT1・T2・T3専用QRコードからアクセスしてください。":"테이블 정보가 없습니다. 좌석의 T1·T2·T3 QR코드를 스캔해 주세요.",
+  "注文受付状態を確認しています…":"주문 접수 상태를 확인하고 있습니다…",
+  "このテーブルは現在、注文受付前または受付終了です。スタッフにお声がけください。":"현재 이 테이블은 주문을 받지 않습니다. 직원에게 문의해 주세요.",
+  "店内でスタッフから案内された4桁の確認コードを入力してください。":"직원이 안내한 4자리 확인 코드를 입력해 주세요.",
+  "店内確認コード":"테이블 확인 코드",
+  "このコードは着席中だけ有効です。会計後や受付終了後は、以前の履歴・ブックマークから注文できません。":"이 코드는 매장 이용 중에만 유효합니다. 계산 또는 주문 접수 종료 후에는 이전 기록에서 주문할 수 없습니다.",
+  "コードが違うか、注文受付が終了しています。スタッフにご確認ください。":"코드가 틀렸거나 주문 접수가 종료되었습니다. 직원에게 문의해 주세요.",
+  "確認中…":"확인 중…",
+  "注文できませんでした。注文受付が終了したか、店内確認コードが無効です。スタッフにお声がけください。":"주문하지 못했습니다. 접수가 종료되었거나 코드가 만료되었을 수 있습니다. 직원에게 문의해 주세요.",
+  "注文用QRコードを読み取ってください":"테이블 QR코드를 스캔해 주세요",
+  "会計後はこの画面が自動でリセットされます":"계산 후 이 화면은 자동으로 초기화됩니다."
+});
+
 })();
