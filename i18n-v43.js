@@ -146,6 +146,7 @@ Object.assign(EN,{
   "確認中…":"Verifying…",
   "注文できませんでした。注文受付が終了したか、店内確認コードが無効です。スタッフにお声がけください。":"Could not place your order. Ordering may have closed or your code has expired. Please ask our staff.",
   "注文用QRコードを読み取ってください":"Please scan the table QR code",
+  "福林楼のホームページへ戻る":"Back to Fukurinrou website",
   "会計後はこの画面が自動でリセットされます":"This screen resets automatically after checkout."
 });
 Object.assign(KO,{
@@ -159,6 +160,7 @@ Object.assign(KO,{
   "確認中…":"확인 중…",
   "注文できませんでした。注文受付が終了したか、店内確認コードが無効です。スタッフにお声がけください。":"주문하지 못했습니다. 접수가 종료되었거나 코드가 만료되었을 수 있습니다. 직원에게 문의해 주세요.",
   "注文用QRコードを読み取ってください":"테이블 QR코드를 스캔해 주세요",
+  "福林楼のホームページへ戻る":"후쿠린로 홈페이지로 돌아가기",
   "会計後はこの画面が自動でリセットされます":"계산 후 이 화면은 자동으로 초기화됩니다."
 });
 
