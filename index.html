@@ -417,7 +417,7 @@ body{background:radial-gradient(circle at 20% 0%,rgba(201,151,43,.10),transparen
     const d=document.createElement("div");
     d.className="start-panel";
     if(!TABLE_VALID){
-      d.innerHTML=`<div style="font-family:var(--font-display);font-size:18px;font-weight:800">${escapeHtml(T("注文用QRコードを読み取ってください"))}</div><div class="table-closed-note">${escapeHtml(T("テーブル情報がありません。店内のT1・T2・T3専用QRコードからアクセスしてください。"))}</div>`;
+      d.innerHTML=`<div style="font-family:var(--font-display);font-size:18px;font-weight:800">${escapeHtml(T("注文用QRコードを読み取ってください"))}</div><div class="table-closed-note">${escapeHtml(T("テーブル情報がありません。店内のT1・T2・T3専用QRコードからアクセスしてください。"))}</div><a href="https://fukurinrou.jp/" style="display:inline-block;margin-top:18px;color:var(--lacquer-deep);font-weight:700;text-underline-offset:4px">${escapeHtml(T("福林楼のホームページへ戻る"))} →</a>`;
       return d;
     }
     const active=sessionIsActive();
